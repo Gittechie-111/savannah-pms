@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 
 // ─── API LAYER — talks to FastAPI backend via /api/* ─────────────────────
-// Vite's proxy in vite.config.js forwards /api/* → http://localhost:8000
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const api = {
   async login(email, password) {
-    const res = await fetch("/api/auth/login", {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -16,7 +17,7 @@ const api = {
     return res.json();
   },
   async register(name, email, password, role = "tenant") {
-    const res = await fetch("/api/auth/register", {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, role }),
@@ -28,12 +29,12 @@ const api = {
     return res.json();
   },
   async get(path, token) {
-    const res = await fetch(path, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${API_BASE}${path}`, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error("Request failed");
     return res.json();
   },
   async post(path, body, token) {
-    const res = await fetch(path, {
+    const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
