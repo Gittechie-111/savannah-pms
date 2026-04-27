@@ -1,0 +1,19 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+*.log
+
+# Node
+node_modules/
+.env
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# M-Pesa credentials (safety)
+*_keys.py
+*_secrets.py

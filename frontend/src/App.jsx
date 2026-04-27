@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import MpesaPayment from './MpesaPayment';
 
 // ─── API LAYER — talks to FastAPI backend via /api/* ─────────────────────
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -44,7 +45,10 @@ const api = {
   },
 };
 
+// Format currency (e.g., 35000 → "KES 35,000")
 const fmt = n => "KES " + Number(n).toLocaleString();
+
+// Format percentage (e.g., 75.5 → "75.5%")
 const pct = n => n + "%";
 
 const STATUS_COLORS = {
@@ -584,6 +588,9 @@ function Dashboard({ user, token, onLogout }) {
 function TenantView({ user, token, onLogout }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showMpesaPayment, setShowMpesaPayment] = useState(false); // ← ADD THIS
+
+
 
   useEffect(() => {
     api.get("/api/transactions", token)
@@ -592,7 +599,40 @@ function TenantView({ user, token, onLogout }) {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const paid = transactions.filter(t=>t.status==="Completed").reduce((s,t)=>s+t.amount,0);
+  const paid = transactions.filter(t=>t.status==="Completed").reduce((s,t)=>s+t.amount, 0);
+  
+  // Get rent amount (you may need to fetch this from API)
+  
+  // const rentAmount = 35000; // Default rent amount - you can fetch from /api/units
+  // const tenantId = user.id;
+  // const propertyId = 1; // You can fetch actual property ID from API
+
+  // NEW CODE (fetch real data)
+  const [rentAmount, setRentAmount] = useState(35000);
+  const [propertyId, setPropertyId] = useState(1);
+  const [unitNumber, setUnitNumber] = useState("A-101");
+
+  useEffect(() => {
+    // Fetch tenant's unit info
+    api.get("/api/units", token)
+      .then(units => {
+        // Find unit assigned to this tenant
+        const myUnit = units.find(u => u.tenant === user.name);
+        if (myUnit) {
+          setRentAmount(myUnit.rent_amount);
+          setPropertyId(myUnit.property_id);
+          setUnitNumber(myUnit.unit_number);
+        }
+      })
+      .catch(err => console.error("Failed to fetch unit:", err));
+  }, [token, user.name]);
+
+  // Function to refresh dashboard after payment
+  const refreshTransactions = () => {
+    api.get("/api/transactions", token)
+      .then(data => setTransactions(data.filter(t => t.tenant === user.name)))
+      .catch(() => {});
+  };
 
   return (
     <div style={{ minHeight:"100vh", background:"#080f1e", fontFamily:"'DM Sans','Segoe UI',sans-serif", padding:24 }}>
@@ -605,14 +645,77 @@ function TenantView({ user, token, onLogout }) {
           </div>
           <button onClick={onLogout} style={{ padding:"8px 16px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"none", color:"#94a3b8", fontSize:12 }}>Sign Out</button>
         </div>
+        
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:24 }}>
-          {[["My Unit","A-101","🏠"],["Rent Amount","KES 35,000","💰"],["Total Paid",fmt(paid),"✅"]].map(([l,v,ic])=>(
+          {[["My Unit","A-101","🏠"],["Rent Amount",fmt(rentAmount),"💰"],["Total Paid",fmt(paid),"✅"]].map(([l,v,ic])=>(
             <div key={l} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:18 }}>
               <p style={{ color:"#475569", fontSize:11, fontWeight:600, textTransform:"uppercase", marginBottom:8 }}>{ic} {l}</p>
               <p style={{ color:"#f1f5f9", fontSize:18, fontWeight:700 }}>{v}</p>
             </div>
           ))}
         </div>
+
+        {/* ========== ADD M-PESA PAYMENT BUTTON HERE ========== */}
+        {!showMpesaPayment ? (
+          <div style={{ marginBottom:24 }}>
+            <button
+              onClick={() => setShowMpesaPayment(true)}
+              style={{
+                width: "100%",
+                padding: "14px 20px",
+                borderRadius: 12,
+                border: "none",
+                background: "linear-gradient(135deg,#10b981,#059669)",
+                color: "white",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(16,185,129,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8
+              }}
+            >
+              💳 Pay Rent with M-Pesa
+            </button>
+          </div>
+        ) : (
+          <div style={{ marginBottom:24 }}>
+            <MpesaPayment
+              tenantId={user.id}
+              amount={rentAmount}
+              propertyId={propertyId}
+              onSuccess={() => {
+                setShowMpesaPayment(false);
+                refreshTransactions();
+                alert("✅ Payment successful! Your rent has been updated.");
+              }}
+              onError={(error) => {
+                console.error("Payment error:", error);
+                alert("❌ Payment failed. Please try again.");
+              }}
+            />
+            <button
+              onClick={() => setShowMpesaPayment(false)}
+              style={{
+                width: "100%",
+                marginTop: 8,
+                padding: "8px",
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "none",
+                color: "#64748b",
+                fontSize: 12,
+                cursor: "pointer"
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        {/* ========== END M-PESA PAYMENT SECTION ========== */}
+
         <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:22 }}>
           <p style={{ color:"#f1f5f9", fontSize:14, fontWeight:600, marginBottom:16 }}>My Payment History</p>
           {loading ? <p style={{ color:"#475569", textAlign:"center", padding:24 }}>Loading…</p> : <TransactionTable data={transactions} />}
@@ -621,6 +724,50 @@ function TenantView({ user, token, onLogout }) {
     </div>
   );
 }
+
+
+
+// ─── Tenant View ──────────────────────────────────────────────────────────
+// function TenantView({ user, token, onLogout }) {
+//   const [transactions, setTransactions] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     api.get("/api/transactions", token)
+//       .then(data => setTransactions(data.filter(t => t.tenant === user.name)))
+//       .catch(() => {})
+//       .finally(() => setLoading(false));
+//   }, [token]);
+
+//   const paid = transactions.filter(t=>t.status==="Completed").reduce((s,t)=>s+t.amount,0);
+
+//   return (
+//     <div style={{ minHeight:"100vh", background:"#080f1e", fontFamily:"'DM Sans','Segoe UI',sans-serif", padding:24 }}>
+//       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');*{box-sizing:border-box;margin:0;padding:0;}`}</style>
+//       <div style={{ maxWidth:700, margin:"0 auto" }}>
+//         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:28 }}>
+//           <div>
+//             <h1 style={{ color:"#f1f5f9", fontFamily:"'Playfair Display',serif", fontSize:22 }}>Tenant Portal</h1>
+//             <p style={{ color:"#475569", fontSize:13, marginTop:2 }}>Welcome, {user.name}</p>
+//           </div>
+//           <button onClick={onLogout} style={{ padding:"8px 16px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"none", color:"#94a3b8", fontSize:12 }}>Sign Out</button>
+//         </div>
+//         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:24 }}>
+//           {[["My Unit","A-101","🏠"],["Rent Amount","KES 35,000","💰"],["Total Paid",fmt(paid),"✅"]].map(([l,v,ic])=>(
+//             <div key={l} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:18 }}>
+//               <p style={{ color:"#475569", fontSize:11, fontWeight:600, textTransform:"uppercase", marginBottom:8 }}>{ic} {l}</p>
+//               <p style={{ color:"#f1f5f9", fontSize:18, fontWeight:700 }}>{v}</p>
+//             </div>
+//           ))}
+//         </div>
+//         <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:22 }}>
+//           <p style={{ color:"#f1f5f9", fontSize:14, fontWeight:600, marginBottom:16 }}>My Payment History</p>
+//           {loading ? <p style={{ color:"#475569", textAlign:"center", padding:24 }}>Loading…</p> : <TransactionTable data={transactions} />}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ROOT
