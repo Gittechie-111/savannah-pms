@@ -1,19 +1,33 @@
-# Python
+# Python virtual environment
 venv/
-__pycache__/
+env/
+ENV/
 *.pyc
-.env
-*.log
+__pycache__/
 
-# Node
-node_modules/
+# Environment variables
 .env
-.DS_Store
+.env.*
+!.env.example
+
+# M-Pesa / API credentials (safety)
+*_keys.py
+*_secrets.py
+*.pem
+
+# Node modules
+node_modules/
+npm-debug.log*
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# M-Pesa credentials (safety)
-*_keys.py
-*_secrets.py
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
