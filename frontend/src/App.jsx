@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import MpesaPayment from './MpesaPayment';
 
 // ─── API LAYER — talks to FastAPI backend via /api/* ─────────────────────
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "https://savannah-backend-kcxm.onrender.com";
 
 const api = {
   async login(email, password) {
@@ -647,7 +647,7 @@ function TenantView({ user, token, onLogout }) {
         </div>
         
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:24 }}>
-          {[["My Unit","A-101","🏠"],["Rent Amount",fmt(rentAmount),"💰"],["Total Paid",fmt(paid),"✅"]].map(([l,v,ic])=>(
+          {[["My Unit",unitNumber,"🏠"],["Rent Amount",fmt(rentAmount),"💰"],["Total Paid",fmt(paid),"✅"]].map(([l,v,ic])=>(
             <div key={l} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:18 }}>
               <p style={{ color:"#475569", fontSize:11, fontWeight:600, textTransform:"uppercase", marginBottom:8 }}>{ic} {l}</p>
               <p style={{ color:"#f1f5f9", fontSize:18, fontWeight:700 }}>{v}</p>
@@ -683,19 +683,17 @@ function TenantView({ user, token, onLogout }) {
         ) : (
           <div style={{ marginBottom:24 }}>
             <MpesaPayment
-              tenantId={user.id}
-              amount={rentAmount}
-              propertyId={propertyId}
-              onSuccess={() => {
-                setShowMpesaPayment(false);
-                refreshTransactions();
-                alert("✅ Payment successful! Your rent has been updated.");
-              }}
-              onError={(error) => {
-                console.error("Payment error:", error);
-                alert("❌ Payment failed. Please try again.");
-              }}
-            />
+  tenantId={user.id}
+  propertyId={propertyId}
+  token={token}
+  onSuccess={() => {
+    setShowMpesaPayment(false);
+    refreshTransactions();
+  }}
+  onError={(error) => {
+    console.error("Payment error:", error);
+  }}
+/>
             <button
               onClick={() => setShowMpesaPayment(false)}
               style={{
@@ -726,49 +724,6 @@ function TenantView({ user, token, onLogout }) {
 }
 
 
-
-// ─── Tenant View ──────────────────────────────────────────────────────────
-// function TenantView({ user, token, onLogout }) {
-//   const [transactions, setTransactions] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     api.get("/api/transactions", token)
-//       .then(data => setTransactions(data.filter(t => t.tenant === user.name)))
-//       .catch(() => {})
-//       .finally(() => setLoading(false));
-//   }, [token]);
-
-//   const paid = transactions.filter(t=>t.status==="Completed").reduce((s,t)=>s+t.amount,0);
-
-//   return (
-//     <div style={{ minHeight:"100vh", background:"#080f1e", fontFamily:"'DM Sans','Segoe UI',sans-serif", padding:24 }}>
-//       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');*{box-sizing:border-box;margin:0;padding:0;}`}</style>
-//       <div style={{ maxWidth:700, margin:"0 auto" }}>
-//         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:28 }}>
-//           <div>
-//             <h1 style={{ color:"#f1f5f9", fontFamily:"'Playfair Display',serif", fontSize:22 }}>Tenant Portal</h1>
-//             <p style={{ color:"#475569", fontSize:13, marginTop:2 }}>Welcome, {user.name}</p>
-//           </div>
-//           <button onClick={onLogout} style={{ padding:"8px 16px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"none", color:"#94a3b8", fontSize:12 }}>Sign Out</button>
-//         </div>
-//         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14, marginBottom:24 }}>
-//           {[["My Unit","A-101","🏠"],["Rent Amount","KES 35,000","💰"],["Total Paid",fmt(paid),"✅"]].map(([l,v,ic])=>(
-//             <div key={l} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:18 }}>
-//               <p style={{ color:"#475569", fontSize:11, fontWeight:600, textTransform:"uppercase", marginBottom:8 }}>{ic} {l}</p>
-//               <p style={{ color:"#f1f5f9", fontSize:18, fontWeight:700 }}>{v}</p>
-//             </div>
-//           ))}
-//         </div>
-//         <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:22 }}>
-//           <p style={{ color:"#f1f5f9", fontSize:14, fontWeight:600, marginBottom:16 }}>My Payment History</p>
-//           {loading ? <p style={{ color:"#475569", textAlign:"center", padding:24 }}>Loading…</p> : <TransactionTable data={transactions} />}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 // ═══════════════════════════════════════════════════════════════════════════
 // ROOT
 // ═══════════════════════════════════════════════════════════════════════════
@@ -793,3 +748,38 @@ export default function App() {
   if (!user) return <LoginScreen onLogin={handleLogin} />;
   return <Dashboard user={user} token={token} onLogout={handleLogout} />;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

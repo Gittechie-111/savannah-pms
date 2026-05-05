@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+// Use the same API base as the main app
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 function MpesaPayment({ tenantId, amount, propertyId, onSuccess, onError }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -11,12 +14,12 @@ function MpesaPayment({ tenantId, amount, propertyId, onSuccess, onError }) {
     setStatus('sending');
     
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         throw new Error('Please log in again');
       }
       
-      const response = await fetch('http://localhost:8000/api/mpesa/stkpush', {
+      const response = await fetch(`${API_BASE}/api/mpesa/stkpush`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +62,7 @@ function MpesaPayment({ tenantId, amount, propertyId, onSuccess, onError }) {
       try {
         const token = localStorage.getItem('token');
         const response = await fetch(
-          `http://localhost:8000/api/mpesa/status/${checkoutId}`,
+          `${API_BASE}/api/mpesa/status/${checkoutId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -110,24 +113,24 @@ function MpesaPayment({ tenantId, amount, propertyId, onSuccess, onError }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Pay with M-Pesa</h3>
-      
+    <div style={{ background: 'rgba(17,24,39,0.98)', borderRadius: '16px', boxShadow: '0 4px 32px rgba(0,0,0,0.3)', padding: 24, maxWidth: 420, margin: '0 auto', color: '#fff' }}>
+      <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 16, color: '#fff' }}>Pay with M-Pesa</h3>
+
       {/* Amount Display */}
-      <div className="bg-green-50 rounded-lg p-4 mb-6 text-center">
-        <p className="text-sm text-gray-600">Amount to Pay</p>
-        <p className="text-3xl font-bold text-green-600">KES {amount.toLocaleString()}</p>
+      <div style={{ background: 'rgba(16,185,129,0.10)', borderRadius: 12, padding: 16, marginBottom: 24, textAlign: 'center' }}>
+        <p style={{ fontSize: 13, color: '#d1fae5', marginBottom: 2 }}>Amount to Pay</p>
+        <p style={{ fontSize: 28, fontWeight: 700, color: '#10b981', margin: 0 }}>KES {amount.toLocaleString()}</p>
       </div>
-      
+
       {/* Payment Form */}
       {!status || status === 'sending' ? (
         <>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
               M-Pesa Phone Number
             </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 bg-gray-100 border border-r-0 rounded-l-md text-gray-500">
+            <div style={{ display: 'flex' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', padding: '0 12px', background: '#1e293b', border: '1px solid #334155', borderRight: 0, borderRadius: '8px 0 0 8px', color: '#94a3b8', fontSize: 15 }}>
                 +254
               </span>
               <input
@@ -135,25 +138,25 @@ function MpesaPayment({ tenantId, amount, propertyId, onSuccess, onError }) {
                 placeholder="712345678"
                 value={phoneNumber}
                 onChange={handlePhoneChange}
-                className="flex-1 p-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                style={{ flex: 1, padding: '10px 12px', border: '1px solid #334155', borderRadius: '0 8px 8px 0', background: '#0f172a', color: '#fff', fontSize: 15 }}
                 disabled={loading}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">
+            <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
               Enter 9-digit number (without 0 or +254)
             </p>
           </div>
-          
+
           <button
             onClick={initiatePayment}
             disabled={loading || phoneNumber.length < 9}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ width: '100%', background: '#10b981', color: '#fff', fontWeight: 700, fontSize: 16, padding: '13px 0', borderRadius: 10, border: 'none', marginTop: 4, marginBottom: 2, opacity: loading || phoneNumber.length < 9 ? 0.5 : 1, cursor: loading || phoneNumber.length < 9 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 12px rgba(16,185,129,0.15)' }}
           >
             {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg style={{ animation: 'spin 1s linear infinite', marginRight: 8, height: 20, width: 20, color: '#fff' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Processing...
               </span>
@@ -163,52 +166,52 @@ function MpesaPayment({ tenantId, amount, propertyId, onSuccess, onError }) {
           </button>
         </>
       ) : status === 'pending' ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Check your phone</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Enter your M-Pesa PIN on <strong>{phoneNumber}</strong>
+        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+          <div style={{ animation: 'spin 1s linear infinite', borderRadius: '50%', height: 64, width: 64, borderBottom: '4px solid #10b981', margin: '0 auto 16px' }}></div>
+          <p style={{ color: '#fff', fontWeight: 600 }}>Check your phone</p>
+          <p style={{ fontSize: 14, color: '#a3e635', marginTop: 8 }}>
+            Enter your M-Pesa PIN on <strong style={{ color: '#fff' }}>{phoneNumber}</strong>
           </p>
-          <p className="text-xs text-gray-400 mt-4">
+          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 16 }}>
             Waiting for confirmation...
           </p>
         </div>
       ) : status === 'completed' ? (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+          <div style={{ width: 64, height: 64, background: '#d1fae5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <svg style={{ width: 32, height: 32, color: '#10b981' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-green-600 font-bold text-lg">Payment Successful!</p>
-          <p className="text-sm text-gray-500 mt-2">Your rent has been updated.</p>
+          <p style={{ color: '#10b981', fontWeight: 700, fontSize: 20 }}>Payment Successful!</p>
+          <p style={{ fontSize: 14, color: '#94a3b8', marginTop: 8 }}>Your rent has been updated.</p>
           <button
             onClick={resetPayment}
-            className="mt-6 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition"
+            style={{ marginTop: 24, background: '#1e293b', color: '#fff', fontWeight: 500, padding: '10px 24px', borderRadius: 8, border: 'none', fontSize: 15, cursor: 'pointer' }}
           >
             Pay Another
           </button>
         </div>
       ) : status === 'failed' ? (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+          <div style={{ width: 64, height: 64, background: '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <svg style={{ width: 32, height: 32, color: '#ef4444' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <p className="text-red-600 font-bold text-lg">Payment Failed</p>
-          <p className="text-sm text-gray-500 mt-2">Please try again.</p>
+          <p style={{ color: '#ef4444', fontWeight: 700, fontSize: 20 }}>Payment Failed</p>
+          <p style={{ fontSize: 14, color: '#94a3b8', marginTop: 8 }}>Please try again.</p>
           <button
             onClick={resetPayment}
-            className="mt-6 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition"
+            style={{ marginTop: 24, background: '#10b981', color: '#fff', fontWeight: 500, padding: '10px 24px', borderRadius: 8, border: 'none', fontSize: 15, cursor: 'pointer' }}
           >
             Try Again
           </button>
         </div>
       ) : null}
-      
+
       {/* Sandbox Notice */}
-      <p className="text-xs text-center text-gray-400 mt-6 border-t pt-4">
+      <p style={{ fontSize: 11, textAlign: 'center', color: '#94a3b8', marginTop: 24, borderTop: '1px solid #1e293b', paddingTop: 16 }}>
         🔬 Sandbox Mode | Test Phone: 254708374149 | PIN: 174379
       </p>
     </div>

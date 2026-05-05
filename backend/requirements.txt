@@ -1,3 +1,7 @@
 fastapi
 uvicorn
 pyjwt
+pymongo
+python-dotenv
+requests
+pytz

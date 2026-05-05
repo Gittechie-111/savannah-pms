@@ -17,6 +17,10 @@ class MpesaService:
         
     def get_access_token(self):
         """Get OAuth token for API authentication"""
+        # Validate credentials are configured
+        if not self.consumer_key or not self.consumer_secret:
+            raise Exception("M-Pesa credentials not configured. Check MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET in .env file")
+        
         api_url = f"{self.base_url}/oauth/v1/generate?grant_type=client_credentials"
         
         # Encode consumer key and secret
@@ -28,12 +32,25 @@ class MpesaService:
             "Content-Type": "application/json"
         }
         
-        response = requests.get(api_url, headers=headers)
+        try:
+            response = requests.get(api_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                token = response.json().get("access_token")
+                if token:
+                    return token
+                else:
+                    raise Exception("No access token in response")
+            else:
+                error_detail = response.text
+                try:
+                    error_detail = response.json()
+                except:
+                    pass
+                raise Exception(f"Failed to get token (status {response.status_code}): {error_detail}")
         
-        if response.status_code == 200:
-            return response.json().get("access_token")
-        else:
-            raise Exception(f"Failed to get token: {response.text}")
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Network error getting M-Pesa token: {str(e)}")
     
     def stk_push(self, phone_number, amount, account_reference, transaction_desc):
         """
@@ -45,16 +62,32 @@ class MpesaService:
         elif phone_number.startswith("+"):
             phone_number = phone_number[1:]
         
-        # Get access token
+        # Ensure it's exactly 12 digits starting with 254
+        if not phone_number.startswith("254") or len(phone_number) != 12:
+            raise Exception(f"Invalid phone number format: {phone_number}. Must be 254XXXXXXXXX")
+
+        import base64
+        import requests
+        from datetime import datetime
+        import pytz
+
+           # 1. Get access token
         token = self.get_access_token()
-        
-        # Generate timestamp (YYYYMMDDHHMMSS)
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        if not token:
+            raise Exception("Failed to get M-Pesa access token")
+
+        # 2. Generate timestamp (EAT timezone)
+        timestamp = datetime.now(pytz.timezone("Africa/Nairobi")).strftime("%Y%m%d%H%M%S")
+
+
         
         # Generate password (Base64 encoded)
         password_str = f"{self.shortcode}{self.passkey}{timestamp}"
         password = base64.b64encode(password_str.encode()).decode()
         
+        # 4. Ensure amount is integer
+        amount = int(amount)
+
         # Prepare STK Push payload
         payload = {
             "BusinessShortCode": self.shortcode,
@@ -75,15 +108,66 @@ class MpesaService:
             "Content-Type": "application/json"
         }
         
-        # Make STK Push request
-        response = requests.post(
-            f"{self.base_url}/mpesa/stkpush/v1/processrequest",
-            json=payload,
-            headers=headers
-        )
+
+        # 6. Debug logs (CRITICAL)
+        print("\n==== STK PUSH REQUEST ====")
+        print(payload)
+
+        try:
+            response = requests.post(
+                f"{self.base_url}/mpesa/stkpush/v1/processrequest",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+
+            try:
+                response_data = response.json()
+            except Exception:
+                response_data = {"error": response.text}
+
+            print("\n==== STK PUSH RESPONSE ====")
+            print("Status Code:", response.status_code)
+            print(response_data)
+
+            return response_data
+
+        except requests.exceptions.RequestException as e:
+            print("\n==== STK PUSH ERROR ====")
+            print(str(e))
+            return {"error": str(e)}
+
+    # try:
+    #         response = requests.post(
+    #             f"{self.base_url}/mpesa/stkpush/v1/processrequest",
+    #             json=payload,
+    #             headers=headers,
+    #             timeout=30
+    #         )
+    #     # Make STK Push request
+    #     response = requests.post(
+    #         f"{self.base_url}/mpesa/stkpush/v1/processrequest",
+    #         json=payload,
+    #         headers=headers
+    #     )
         
-        return response.json()
-    
+    #     try:
+    #         response_data = response.json()
+    #     except Exception:
+    #         response_data = {"error": response.text}
+
+    #     print("==== STK PUSH REQUEST ====")
+    #     print(payload)
+
+    #     print("==== STK PUSH RESPONSE ====")
+    #     print(response.status_code, response_data)
+
+    #     return response_data
+    # except requests.exceptions.RequestException as e:
+    #         print("\n==== STK PUSH ERROR ====")
+    #         print(str(e))
+    #         return {"error": str(e)}
+        
     def query_status(self, checkout_request_id):
         """
         Query transaction status

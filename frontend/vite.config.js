@@ -9,7 +9,7 @@ export default defineConfig({
       // This is the KEY link — any request to /api/* from React
       // gets forwarded to the FastAPI backend on port 8000
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://savannah-backend-kcxm.onrender.com',
         changeOrigin: true,
       }
     }

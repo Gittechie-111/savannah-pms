@@ -1,0 +1,145 @@
+{
+  "timestamp": "2026-04-30T21:14:10.591985",
+  "base_url": "http://localhost:8000",
+  "total_tests": 18,
+  "passed": 17,
+  "failed": 1,
+  "test_results": [
+    {
+      "test": "Root Endpoint",
+      "passed": true,
+      "message": "API: Savannah Property Management API v1.0, Status: running",
+      "timestamp": "2026-04-30T21:13:53.985635",
+      "status_code": 200
+    },
+    {
+      "test": "Admin Login",
+      "passed": true,
+      "message": "User: Admin Manager, Role: admin",
+      "timestamp": "2026-04-30T21:13:55.482091",
+      "status_code": 200
+    },
+    {
+      "test": "Accountant Login",
+      "passed": true,
+      "message": "User: Jane Wanjiku, Role: accountant",
+      "timestamp": "2026-04-30T21:13:56.111101",
+      "status_code": 200
+    },
+    {
+      "test": "Tenant Login",
+      "passed": true,
+      "message": "User: James Mwangi, Role: tenant",
+      "timestamp": "2026-04-30T21:13:56.773931",
+      "status_code": 200
+    },
+    {
+      "test": "Register Tenant",
+      "passed": true,
+      "message": "Created: Auto Test Tenant (newtenant_1777572837@example.com)",
+      "timestamp": "2026-04-30T21:13:57.761831",
+      "status_code": 200
+    },
+    {
+      "test": "Unauthorized Access Blocked",
+      "passed": true,
+      "message": "Properly rejected request without token",
+      "timestamp": "2026-04-30T21:13:58.264212",
+      "status_code": 401
+    },
+    {
+      "test": "Invalid Token Rejected",
+      "passed": true,
+      "message": "Rejected with status 401",
+      "timestamp": "2026-04-30T21:13:58.767210",
+      "status_code": 401
+    },
+    {
+      "test": "Dashboard Stats",
+      "passed": true,
+      "message": "Units: 300, Occupancy: 89.7%, Revenue: KES 133,000.0",
+      "timestamp": "2026-04-30T21:14:00.422038",
+      "status_code": 200
+    },
+    {
+      "test": "Monthly Collections",
+      "passed": true,
+      "message": "Found 6 months of data",
+      "timestamp": "2026-04-30T21:14:00.932720",
+      "status_code": 200
+    },
+    {
+      "test": "Get Properties",
+      "passed": true,
+      "message": "Retrieved 3 properties",
+      "timestamp": "2026-04-30T21:14:01.630284",
+      "status_code": 200
+    },
+    {
+      "test": "Get Units",
+      "passed": true,
+      "message": "Retrieved 8 units",
+      "timestamp": "2026-04-30T21:14:02.365185",
+      "status_code": 200
+    },
+    {
+      "test": "Get Transactions",
+      "passed": true,
+      "message": "Retrieved 7 transactions",
+      "timestamp": "2026-04-30T21:14:03.005295",
+      "status_code": 200
+    },
+    {
+      "test": "Manual Payment",
+      "passed": false,
+      "message": "Internal Server Error",
+      "timestamp": "2026-04-30T21:14:04.008599",
+      "status_code": 500
+    },
+    {
+      "test": "STK Push Initiation",
+      "passed": true,
+      "message": "Checkout ID: ws_CO_30042026211405862708374149, Message: Success. Request accepted for processing",
+      "timestamp": "2026-04-30T21:14:06.213980",
+      "status_code": 200
+    },
+    {
+      "test": "Payment Status Check",
+      "passed": true,
+      "message": "Status: error, Result: N/A",
+      "timestamp": "2026-04-30T21:14:08.000820",
+      "status_code": 200
+    },
+    {
+      "test": "Pending Transactions",
+      "passed": true,
+      "message": "Found 7 pending transactions",
+      "timestamp": "2026-04-30T21:14:08.640247",
+      "status_code": 200
+    },
+    {
+      "test": "Callback Simulation",
+      "passed": true,
+      "message": "Result: The service request is processed successfully.",
+      "timestamp": "2026-04-30T21:14:09.416401",
+      "status_code": 200
+    },
+    {
+      "test": "Get Arrears",
+      "passed": true,
+      "message": "Found 3 tenants in arrears",
+      "timestamp": "2026-04-30T21:14:10.090558",
+      "status_code": 200
+    }
+  ],
+  "tokens_obtained": {
+    "admin": true,
+    "accountant": true,
+    "tenant": true
+  },
+  "test_data": {
+    "checkout_request_id": "ws_CO_30042026211405862708374149",
+    "new_user_id": 10,
+    "unit_id": 1
+  }
+}
